@@ -1,2 +1,7 @@
-# finalibre-valuation
-Primary calculation of market value primitives
+## FinaLibre Valuation
+
+#### General tools for valuation of financial primitives
+
+### Usage
+
+Don't use this yet.
