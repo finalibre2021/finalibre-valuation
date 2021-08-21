@@ -1,18 +1,19 @@
 package finalibre.valuation.model
 
+import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 import java.time.{LocalDate, Month}
 
 trait DayCountConvention:
   def countDays(periodStart : LocalDate, currentDate : LocalDate) : Int
-  def denominator(periodStart : LocalDate, periodEnd : LocalDate) : Int
-  def accruedFactor(periodStart : LocalDate, currentDate : LocalDate, periodEnd : LocalDate) : Double = countDays(periodStart, currentDate).toDouble / denominator(periodStart, periodEnd)
+  def denominator(periodStart : LocalDate, periodEnd : LocalDate, frequency : Int) : Int
+  def accruedFactor(periodStart : LocalDate, currentDate : LocalDate, periodEnd : LocalDate, frequency : Int) : Double = countDays(periodStart, currentDate).toDouble / denominator(periodStart, periodEnd, frequency)
 
 
 object DayCountConvention:
 
   abstract class M30Y360 extends DayCountConvention:
     def dayPartOf(d1 : LocalDate, d2 : LocalDate) : (Int, Int)
-    override def denominator(periodStart : LocalDate, periodEnd : LocalDate) = 360
+    override def denominator(periodStart : LocalDate, periodEnd : LocalDate, frequency : Int) = 360
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
       val (d1, d2) = dayPartOf(periodStart, currentDate)
       (360 * (currentDate.getYear - periodStart.getYear) + 30 * (d2 - d1) + (d2 - d1))
@@ -40,9 +41,74 @@ object DayCountConvention:
           rDay2 = 30
       (rDay1, rDay2)
 
+  object M30EY360 extends M30Y360:
+    override def dayPartOf(d1: LocalDate, d2: LocalDate): (Int, Int) =
+      var rDay1 = math.min(d1.getDayOfMonth,30)
+      var rDay2 = math.min(d2.getDayOfMonth,30)
+      (rDay1, rDay2)
+
+  object M30EY360ISDA extends M30Y360:
+    override def dayPartOf(d1: LocalDate, d2: LocalDate): (Int, Int) =
+      var rDay1 = math.min(d1.getDayOfMonth,30)
+      var rDay2 = math.min(d2.getDayOfMonth,30)
+      (rDay1, rDay2)
+    def countDaysOnMatDate(periodStart : LocalDate, periodEndDate : LocalDate) =
+      val d1 = math.min(periodStart.getDayOfMonth, 30)
+      val d2 = if periodEndDate.getMonth == Month.FEBRUARY then periodEndDate.getDayOfMonth else math.min(periodEndDate.getDayOfMonth, 30)
+      (360 * (periodEndDate.getYear - periodStart.getYear) + 30 * (d2 - d1) + (d2 - d1))
+
+  object ActualActualISMA extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = frequency * ChronoUnit.DAYS.between(periodStart, periodEnd).toInt
+
+  object ActualActualISDA extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = -1
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = -1
+    override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
+      (periodStart.getYear, periodEnd.getYear) match
+        case (y1, y2) if y1 == y2 => (ChronoUnit.DAYS.between(periodStart, periodEnd)).toDouble / (if periodStart.isLeapYear then 366 else 365)
+        case (y1, y2) if y1 < y2 =>
+          val daysInY1 = ChronoUnit.DAYS.between(periodStart,periodStart.`with`(TemporalAdjusters.lastDayOfYear())).toInt
+          val daysInY2 = ChronoUnit.DAYS.between(periodEnd.`with`(TemporalAdjusters.firstDayOfYear()), periodEnd).toInt
+          val (leapYearDays, nonLeapYearDays) = Range(1, y2 - y1).foldLeft((0,0)) {
+            case ((inLeaps, notInLeaps), plusYears) => if LocalDate.of(y1 + plusYears, 1, 1).isLeapYear then (inLeaps + 366, notInLeaps) else (inLeaps, notInLeaps + 365)
+          }
+          val (y1Leap, y1NonLeap) = if periodStart.isLeapYear then (daysInY1, 0) else (0, daysInY1)
+          val (y2Leap, y2NonLeap) = if periodEnd.isLeapYear then (daysInY2, 0) else (0, daysInY2)
+          (y1Leap + y2Leap + leapYearDays).toDouble/366.0 + (y1NonLeap + y2NonLeap + nonLeapYearDays).toDouble / 365.0
+
+  object Actual365Fixed extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 365
+
+  object Actual360 extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 360
+
+  object Actual364 extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 364
+
+  object Actual365L extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int =
+      val theNextFeb29 = nextFeb29(periodStart)
+      frequency match
+        case 1 if theNextFeb29.isBefore(periodEnd) => 366
+        case 1 => 365
+        case _ if periodEnd.isLeapYear => 366
+        case _ => 365
 
 
 
 
-/*  case , , M30EY360, M30EY360ISDA,
+  def nextFeb29(fromDate : LocalDate) =
+    fromDate.isLeapYear match
+      case true if LocalDate.of(fromDate.getYear, 2, 29).isAfter(fromDate) => LocalDate.of(fromDate.getYear, 2, 29)
+      case _ =>
+        val toAdd = Range(1,10).find(addee => LocalDate.of(fromDate.getYear + addee, 1,1).isLeapYear).get
+        LocalDate.of(fromDate.getYear + toAdd, 2, 29)
+
+
+/*  case , ,M30EY360ISDA,
   ActualAcualICMA, ActualActualISDA, ActualY365Fixed*/
