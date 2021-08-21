@@ -1,6 +1,6 @@
 package finalibre.valuation.model
 
-import java.time.temporal.{ChronoUnit, TemporalAdjusters}
+import java.time.temporal.{ChronoUnit, TemporalAdjusters, TemporalUnit}
 import java.time.{LocalDate, Month}
 
 trait DayCountConvention:
@@ -98,6 +98,31 @@ object DayCountConvention:
         case 1 => 365
         case _ if periodEnd.isLeapYear => 366
         case _ => 365
+
+  object ActualActualAFB extends DayCountConvention:
+    type SplitPeriod = (Option[Int], (LocalDate, LocalDate, Int))
+    def splitPeriod(periodStart : LocalDate, periodEnd : LocalDate) : SplitPeriod =
+      val theNextFeb29 = nextFeb29(periodStart)
+      (ChronoUnit.DAYS.between(periodStart, periodEnd), theNextFeb29.isBefore(periodEnd)) match
+        case (per,true) if per <= 366  => (None, (periodStart, periodEnd, 366))
+        case (per,false) if per <= 365  => (None, (periodStart, periodEnd, 366))
+        case per =>
+          val yearsBetween = ChronoUnit.YEARS.between(periodStart, periodEnd)
+          val splitDate = periodEnd.minus(yearsBetween, ChronoUnit.YEARS)
+          val remainderDenom = if theNextFeb29.isBefore(splitDate) then 366 else 365
+          (Some(yearsBetween.toInt), (periodStart, splitDate, remainderDenom))
+
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
+      val (_,(_,spltDay,_)) = splitPeriod(periodStart, currentDate)
+      ChronoUnit.DAYS.between(periodStart, spltDay).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int =
+      val (_,(_,_,denom)) = splitPeriod(periodStart, periodEnd)
+      denom
+
+    override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
+      splitPeriod(periodStart, periodEnd) match
+        case (yearsOpt, (from, to, denom)) =>
+          yearsOpt.map(_.toDouble).getOrElse(0.0) + ChronoUnit.DAYS.between(from, to).toDouble / denom.toDouble
 
 
 
