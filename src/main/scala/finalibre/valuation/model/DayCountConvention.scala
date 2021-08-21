@@ -65,16 +65,17 @@ object DayCountConvention:
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = -1
     override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = -1
     override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
-      (periodStart.getYear, periodEnd.getYear) match
-        case (y1, y2) if y1 == y2 => (ChronoUnit.DAYS.between(periodStart, periodEnd)).toDouble / (if periodStart.isLeapYear then 366 else 365)
+      (periodStart.getYear, currentDate.getYear) match
+        case (y1, y2) if y1 == y2 => 
+          (ChronoUnit.DAYS.between(periodStart, currentDate)).toDouble / (if periodStart.isLeapYear then 366 else 365)
         case (y1, y2) if y1 < y2 =>
           val daysInY1 = ChronoUnit.DAYS.between(periodStart,periodStart.`with`(TemporalAdjusters.lastDayOfYear())).toInt
-          val daysInY2 = ChronoUnit.DAYS.between(periodEnd.`with`(TemporalAdjusters.firstDayOfYear()), periodEnd).toInt
+          val daysInY2 = ChronoUnit.DAYS.between(currentDate.`with`(TemporalAdjusters.firstDayOfYear()), currentDate).toInt
           val (leapYearDays, nonLeapYearDays) = Range(1, y2 - y1).foldLeft((0,0)) {
             case ((inLeaps, notInLeaps), plusYears) => if LocalDate.of(y1 + plusYears, 1, 1).isLeapYear then (inLeaps + 366, notInLeaps) else (inLeaps, notInLeaps + 365)
           }
           val (y1Leap, y1NonLeap) = if periodStart.isLeapYear then (daysInY1, 0) else (0, daysInY1)
-          val (y2Leap, y2NonLeap) = if periodEnd.isLeapYear then (daysInY2, 0) else (0, daysInY2)
+          val (y2Leap, y2NonLeap) = if currentDate.isLeapYear then (daysInY2, 0) else (0, daysInY2)
           (y1Leap + y2Leap + leapYearDays).toDouble/366.0 + (y1NonLeap + y2NonLeap + nonLeapYearDays).toDouble / 365.0
 
   object Actual365Fixed extends DayCountConvention:

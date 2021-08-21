@@ -8,5 +8,8 @@ lazy val root = project
 
     scalaVersion := scala3Version,
 
-    libraryDependencies += "com.typesafe" % "config" % "1.4.1"
+    libraryDependencies ++= List(
+      "com.typesafe" % "config" % "1.4.1",
+      "org.scalatest" %% "scalatest" % "3.2.9" % "test"
+    )
   )
