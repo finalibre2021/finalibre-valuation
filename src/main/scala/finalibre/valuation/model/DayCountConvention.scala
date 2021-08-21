@@ -124,6 +124,14 @@ object DayCountConvention:
         case (yearsOpt, (from, to, denom)) =>
           yearsOpt.map(_.toDouble).getOrElse(0.0) + ChronoUnit.DAYS.between(from, to).toDouble / denom.toDouble
 
+  object OneOne extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 365
+
+    override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
+      countDays(periodStart, currentDate).toDouble / 365.25
+
 
 
 
