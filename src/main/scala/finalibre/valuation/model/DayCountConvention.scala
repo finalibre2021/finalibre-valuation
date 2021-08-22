@@ -16,7 +16,7 @@ object DayCountConvention:
     override def denominator(periodStart : LocalDate, periodEnd : LocalDate, frequency : Int) = 360
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
       val (d1, d2) = dayPartOf(periodStart, currentDate)
-      (360 * (currentDate.getYear - periodStart.getYear) + 30 * (d2 - d1) + (d2 - d1))
+      (360 * (currentDate.getYear - periodStart.getYear) + 30 * (currentDate.getMonthValue - periodStart.getMonthValue) + (d2 - d1))
 
 
   object M30Y360BondBasis extends M30Y360:
@@ -70,7 +70,7 @@ object DayCountConvention:
           (ChronoUnit.DAYS.between(periodStart, currentDate)).toDouble / (if periodStart.isLeapYear then 366 else 365)
         case (y1, y2) if y1 < y2 =>
           val daysInY1 = ChronoUnit.DAYS.between(periodStart,periodStart.`with`(TemporalAdjusters.lastDayOfYear())).toInt
-          val daysInY2 = ChronoUnit.DAYS.between(currentDate.`with`(TemporalAdjusters.firstDayOfYear()), currentDate).toInt
+          val daysInY2 = ChronoUnit.DAYS.between(currentDate.`with`(TemporalAdjusters.firstDayOfYear()).minusDays(1), currentDate).toInt
           val (leapYearDays, nonLeapYearDays) = Range(1, y2 - y1).foldLeft((0,0)) {
             case ((inLeaps, notInLeaps), plusYears) => if LocalDate.of(y1 + plusYears, 1, 1).isLeapYear then (inLeaps + 366, notInLeaps) else (inLeaps, notInLeaps + 365)
           }
@@ -90,6 +90,19 @@ object DayCountConvention:
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
     override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 364
 
+  object Actual365A extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int =
+      val theNextFeb29 = nextFeb29(periodStart)
+      if theNextFeb29.isBefore(periodEnd) then 366 else 365
+
+    override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
+      val numerator = countDays(periodStart, currentDate)
+      val denom = denominator(periodStart, currentDate, frequency)
+      numerator.toDouble / denom.toDouble
+
+
+
   object Actual365L extends DayCountConvention:
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
     override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int =
@@ -99,6 +112,15 @@ object DayCountConvention:
         case 1 => 365
         case _ if periodEnd.isLeapYear => 366
         case _ => 365
+
+  object NL365 extends DayCountConvention:
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
+      val actualNumberOfDays = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
+      val theNextFeb29 = nextFeb29(periodStart)
+      (if theNextFeb29.isBefore(currentDate) then -1 else 0) + actualNumberOfDays
+
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 365
+
 
   object ActualActualAFB extends DayCountConvention:
     type SplitPeriod = (Option[Int], (LocalDate, LocalDate, Int))
