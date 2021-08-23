@@ -11,7 +11,7 @@ trait DayCountConvention:
 
 object DayCountConvention:
 
-  abstract class M30Y360 extends DayCountConvention:
+  trait M30Y360 extends DayCountConvention:
     def dayPartOf(d1 : LocalDate, d2 : LocalDate) : (Int, Int)
     override def denominator(periodStart : LocalDate, periodEnd : LocalDate, frequency : Int) = 360
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =

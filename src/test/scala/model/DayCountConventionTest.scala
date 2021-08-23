@@ -23,7 +23,9 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   val deltaQuantsEx1CurrentDate = LocalDate.of(2008, 2, 28 )
   val deltaQuantsEx1EndDate = LocalDate.of(2008, 12, 28 )
 
-
+  val deltaQuantsEx2StartDate = LocalDate.of(2007, 12, 28 )
+  val deltaQuantsEx2CurrentDate = LocalDate.of(2008, 2, 29 )
+  val deltaQuantsEx2EndDate = LocalDate.of(2008, 12, 28 )
 
   // 30U/360
   "30U/360" should "return 279 as number of days in non-leap year case" in
@@ -44,7 +46,11 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "30U/360" should "return 0.166666666666667 as day-fraction" in
     (M30Y360US.accruedFactor(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate, deltaQuantsEx1EndDate, 1) should be (0.166666666666667 +- 0.00001))
 
+  "30U/360" should "return 61 as number of days in delta quants case 1" in
+    (M30Y360US.countDays(deltaQuantsEx2StartDate, deltaQuantsEx2CurrentDate) should be (61))
 
+  "30U/360" should "return 0.169444444444444 as day-fraction" in
+    (M30Y360US.accruedFactor(deltaQuantsEx2StartDate, deltaQuantsEx2CurrentDate, deltaQuantsEx2EndDate, 1) should be (0.169444444444444 +- 0.00001))
 
 
   // 30E/360
