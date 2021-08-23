@@ -1,6 +1,6 @@
 package model
 
-import finalibre.valuation.model.DayCountConvention.{Actual360, Actual365A, Actual365Fixed, Actual365L, ActualActualISDA, M30EY360, M30EY360ISDA, M30Y360US, NL365}
+import finalibre.valuation.model.DayCountConvention.{Actual360, Actual365A, Actual365Fixed, Actual365L, ActualActualISDA, M30EPlusY360, M30EY360, M30EY360ISDA, M30Y360German, M30Y360US, NL365}
 import org.scalactic.{Equality, TolerantNumerics}
 import org.scalatest.*
 import flatspec.*
@@ -61,6 +61,20 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
     (M30EY360.accruedFactor(crossYearWithLeapStartDate, crossYearWithLeapCurrentDate, crossYearWithLeapEndDate, 1) should be (0.311111 +- 0.00001))
 
 
+  // 30E+/360
+  "30E+/360" should "return 60 as number of days in delta quants case 1" in
+    (M30EPlusY360.countDays(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate) should be (60))
+
+  "30E+/360" should "return 0.166666666666667 as day-fraction in delta quants case 1" in
+    (M30EPlusY360.accruedFactor(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate, deltaQuantsEx1EndDate, 1) should be (0.166666666666667 +- 0.00001))
+
+  // 30/360 German
+  "30/360 German" should "return 60 as number of days in delta quants case 1" in
+    (M30Y360German.countDays(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate) should be (60))
+
+  "30/360 German" should "return 0.166666666666667 as day-fraction in delta quants case 1" in
+    (M30Y360German.accruedFactor(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate, deltaQuantsEx1EndDate, 1) should be (0.166666666666667 +- 0.00001))
+
 
   // Actual/365 Fixed (Act/365F)
   "Actual/365 Fixed" should "return 282 as number of days in non-leap year case" in
@@ -97,7 +111,7 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   ignore should "return 0.308743 as day-fraction" in
     (ActualActualISDA.accruedFactor(crossYearWithLeapStartDate, crossYearWithLeapCurrentDate, crossYearWithLeapEndDate, 1) should be (0.308743 +- 0.00001))
 
-  "Actual/Actual ISDA" should "return 0.16942884946478 as day-fraction" in
+  "Actual/Actual ISDA" should "return 0.16942884946478 as day-fraction in delta quants case 1" in
     (ActualActualISDA.accruedFactor(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate, deltaQuantsEx1EndDate, 1) should be (0.16942884946478 +- 0.00001))
 
 

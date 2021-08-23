@@ -29,6 +29,14 @@ object DayCountConvention:
         rDay1 = 30
       (rDay1, rDay2)
 
+  object M30Y360German extends M30Y360:
+    def change(dat : LocalDate) : Int = (dat.getDayOfMonth, dat.plusDays(1).getDayOfMonth) match
+      case (d1,d2) if d1 > d2 => 30
+      case (d1, _) => d1
+
+    override def dayPartOf(d1: LocalDate, d2: LocalDate): (Int, Int) =
+      (change(d1), change(d2))
+
   object M30Y360US extends M30Y360:
     override def dayPartOf(d1: LocalDate, d2: LocalDate): (Int, Int) =
       var rDay1 = math.min(d1.getDayOfMonth,30)
@@ -46,6 +54,18 @@ object DayCountConvention:
       var rDay1 = math.min(d1.getDayOfMonth,30)
       var rDay2 = math.min(d2.getDayOfMonth,30)
       (rDay1, rDay2)
+
+  object M30EPlusY360 extends DayCountConvention:
+    def correctDates(start : LocalDate, end : LocalDate) =
+      val corrStart = if start.getDayOfMonth == 31 then start.minusDays(1) else start
+      var corrEnd = if end.getDayOfMonth == 31 then end.plusDays(1) else end
+      (corrStart, corrEnd)
+    override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
+      val (corrStart, corrEnd) = correctDates(periodStart, currentDate)
+      (corrEnd.getDayOfMonth - corrStart.getDayOfMonth) + 30 * (corrEnd.getMonthValue - corrStart.getMonthValue) + 360 * (corrEnd.getYear - corrStart.getYear)
+    override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 360
+
+
 
   object M30EY360ISDA extends M30Y360:
     override def dayPartOf(d1: LocalDate, d2: LocalDate): (Int, Int) =
