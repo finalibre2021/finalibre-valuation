@@ -1,6 +1,9 @@
 package model
 
+import finalibre.valuation.Valuation
 import finalibre.valuation.model.YieldCurve
+import finalibre.valuation.model.YieldCurve.Interpolation
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -22,7 +25,7 @@ class YieldCurvePricingMicrosoftBondTest extends AnyFlatSpec with should.Matcher
     baseDate.plusYears(10) -> 1.79,
     baseDate.plusYears(20) -> 1.87)
 
-  val yc @ YieldCurve(cur, _, yields, _) = YieldCurve.from("USD", baseDate, knownYields)
+  val yc @ YieldCurve(_, yields, _) = YieldCurve.from(baseDate, knownYields, Interpolation.SplineInterpolator)
   val yieldMap = yields.map(p => p._1 -> (p._2 / 100.0 + 1.0)).toMap
 
   val isin = "US594918BY93"
@@ -39,6 +42,12 @@ class YieldCurvePricingMicrosoftBondTest extends AnyFlatSpec with should.Matcher
   val nominalRedemptionPresentValue = nominal / yieldMap(maturityDate)
   val calculatedPrice = nominalRedemptionPresentValue + couponPaymentsPresentValue.map(_._3).sum
 
+  given Valuation.BondCalculationContext = Valuation.bondCalculationContextFrom(baseDate, knownYields)
+  val valuationCalculatedPrice = Valuation.calculateFixedCouponBulletBondPrice(nominal, couponRate, annualCoupons, nextCouponDate, maturityDate)
+
+  "Valuation model" should "calculate this price for Microsoft Corporation bond" in
+    (valuationCalculatedPrice should be (calculatedPrice +- 0.000000001))
+
   "Price of Microsoft Corporation bond, maturity: 06-02-2027 with 2 annual coupon payments at 3.3%" should "be valued close to currently traded price" in
-    (calculatedPrice should be (currentPrice +- 6.1))
+    (valuationCalculatedPrice should be (currentPrice +- 6.1))
 

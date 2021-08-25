@@ -1,7 +1,8 @@
 import finalibre.valuation.model.YieldCurve
-import org.apache.commons.math3.analysis.interpolation.{AkimaSplineInterpolator, LoessInterpolator, SplineInterpolator}
+import finalibre.valuation.model.YieldCurve.Interpolation
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.time.{Day, TimeSeries, TimeSeriesCollection}
+
 
 import java.io.File
 import java.time.LocalDate
@@ -24,9 +25,9 @@ object ExploreYields {
       baseDate.plusYears(10) -> 1.79,
       baseDate.plusYears(20) -> 1.87)
 
-    val yieldsBySpline = YieldCurve.from(currency, baseDate, knownYields, new SplineInterpolator)
-    val yieldsByAkima = YieldCurve.from(currency, baseDate, knownYields, new AkimaSplineInterpolator)
-    val yieldsByLoess = YieldCurve.from(currency, baseDate, knownYields, new LoessInterpolator())
+    val yieldsBySpline = YieldCurve.from(baseDate, knownYields, Interpolation.SplineInterpolator)
+    val yieldsByAkima = YieldCurve.from(baseDate, knownYields, Interpolation.AkimaInterpolator)
+    val yieldsByLoess = YieldCurve.from(baseDate, knownYields, Interpolation.LoessInterpolator)
 
     val toChart = List(
       "Spline" -> yieldsBySpline,
