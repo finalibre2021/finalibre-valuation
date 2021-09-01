@@ -74,7 +74,7 @@ object DayCountConvention:
       (rDay1, rDay2)
     def countDaysOnMatDate(periodStart : LocalDate, periodEndDate : LocalDate) =
       val d1 = math.min(periodStart.getDayOfMonth, 30)
-      val d2 = if periodStart.getDayOfMonth + periodEndDate.getDayOfMonth equals 62 then 30 else periodEndDate.getDayOfMonth
+      val d2 = if periodStart.getDayOfMonth == 31 && periodEndDate.getDayOfMonth == 31 then 30 else periodEndDate.getDayOfMonth
       (360 * (periodEndDate.getYear - periodStart.getYear) + 30 * (periodEndDate.getMonthValue - periodStart.getMonthValue) + (d2 - d1))
 
   object ActualActualISMA extends DayCountConvention:
@@ -114,7 +114,7 @@ object DayCountConvention:
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
     override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int =
       val theNextFeb29 = nextFeb29(periodStart)
-      if theNextFeb29.isBefore(periodEnd) then 366 else if theNextFeb29.isEqual(periodEnd) then 366 else 365
+      if theNextFeb29.isBefore(periodEnd) || theNextFeb29.isEqual(periodEnd) then 366 else 365
 
     override def accruedFactor(periodStart: LocalDate, currentDate: LocalDate, periodEnd: LocalDate, frequency: Int): Double =
       val numerator = countDays(periodStart, currentDate)
@@ -138,7 +138,7 @@ object DayCountConvention:
     override def countDays(periodStart: LocalDate, currentDate: LocalDate): Int =
       val actualNumberOfDays = ChronoUnit.DAYS.between(periodStart, currentDate).toInt
       val theNextFeb29 = nextFeb29(periodStart)
-      (if theNextFeb29.isBefore(currentDate) then -1 else if theNextFeb29.isEqual(currentDate) then -1 else 0) + actualNumberOfDays
+      (if theNextFeb29.isBefore(currentDate) || theNextFeb29.isEqual(currentDate) then -1 else 0) + actualNumberOfDays
 
     override def denominator(periodStart: LocalDate, periodEnd: LocalDate, frequency: Int): Int = 365
 
