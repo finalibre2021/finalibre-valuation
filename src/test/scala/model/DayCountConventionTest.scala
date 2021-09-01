@@ -31,7 +31,7 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   val deltaQuantsEx3CurrentDate = LocalDate.of(2008, 11, 30 )
   val deltaQuantsEx3EndDate = LocalDate.of(2008, 10, 31 )
 
-  val deltaQuantsEx4StartDate = LocalDate.of(2008, 1, 2 )
+  val deltaQuantsEx4StartDate = LocalDate.of(2008, 2, 1 )
   val deltaQuantsEx4CurrentDate = LocalDate.of(2009, 5, 31 )
   val deltaQuantsEx4EndDate = LocalDate.of(2009, 1, 2 )
 
@@ -63,8 +63,8 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "30U/360" should "return 390 as number of days in delta quants case 1" in
     (M30Y360US.countDays(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate) should be (390))
 
-  "30U/360" should "return 1.108333333333333 as day-fraction" in
-    (M30Y360US.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.108333333333333 +- 0.00001))
+  "30U/360" should "return 1.08333333333333 as day-fraction" in
+    (M30Y360US.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.08333333333333 +- 0.00001))
 
   "30U/360" should "return 480 as number of days in delta quants case 1" in
     (M30Y360US.countDays(deltaQuantsEx4StartDate, deltaQuantsEx4CurrentDate) should be (480))
@@ -100,8 +100,8 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "30E/360" should "return 390 as number of days in delta quants case 1" in
     (M30EY360.countDays(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate) should be (390))
 
-  "30E/360" should "return 1.108333333333333 as day-fraction" in
-    (M30EY360.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.108333333333333 +- 0.00001))
+  "30E/360" should "return 1.08333333333333 as day-fraction" in
+    (M30EY360.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.08333333333333 +- 0.00001))
 
   "30E/360" should "return 479 as number of days in delta quants case 1" in
     (M30EY360.countDays(deltaQuantsEx4StartDate, deltaQuantsEx4CurrentDate) should be (479))
@@ -126,8 +126,8 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "30E+/360" should "return 390 as number of days in delta quants case 1" in
     (M30EPlusY360.countDays(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate) should be (390))
 
-  "30E+/360" should "return 1.108333333333333 as day-fraction" in
-    (M30EPlusY360.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.108333333333333 +- 0.00001))
+  "30E+/360" should "return 1.08333333333333 as day-fraction" in
+    (M30EPlusY360.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.08333333333333 +- 0.00001))
 
   "30E+/360" should "return 480 as number of days in delta quants case 1" in
     (M30EPlusY360.countDays(deltaQuantsEx4StartDate, deltaQuantsEx4CurrentDate) should be (480))
@@ -151,8 +151,8 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "30/360 German" should "return 390 as number of days in delta quants case 1" in
     (M30Y360German.countDays(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate) should be (390))
 
-  "30/360 German" should "return 1.108333333333333 as day-fraction" in
-    (M30Y360German.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.108333333333333 +- 0.00001))
+  "30/360 German" should "return 1.08333333333333 as day-fraction" in
+    (M30Y360German.accruedFactor(deltaQuantsEx3StartDate, deltaQuantsEx3CurrentDate, deltaQuantsEx3EndDate, 1) should be (1.08333333333333 +- 0.00001))
 
   "30/360 German" should "return 479 as number of days in delta quants case 1" in
     (M30Y360German.countDays(deltaQuantsEx4StartDate, deltaQuantsEx4CurrentDate) should be (479))
@@ -206,7 +206,7 @@ class DayCountConventionTest extends AnyFlatSpec with should.Matchers:
   "NL/365" should "return 0.16986301369863 as day-fraction in delta quants case 1" in
     (NL365.accruedFactor(deltaQuantsEx1StartDate, deltaQuantsEx1CurrentDate, deltaQuantsEx1EndDate, 1) should be (0.16986301369863 +- 0.00001))
 
-  "NL/365" should "return 62 as number of days in delta quants case 1" in
+  "NL/365" should "return 62 as number of days in delta quants case 2" in
     (NL365.countDays(deltaQuantsEx2StartDate, deltaQuantsEx2CurrentDate) should be (62))
 
   "NL/365" should "return 0.16986301369863 as day-fraction" in
